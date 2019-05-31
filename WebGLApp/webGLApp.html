@@ -24,8 +24,8 @@
             uniform mat4 uMVMatrixLight;
             varying vec4 vertexPosLight;
 
-            void main(void) 
-            {
+            void main(void) {
+
                 normalEye = normalize(uNMatrix * aVertexNormal);
 
                 positionEye = uMVMatrix * uSMatrix * vec4(aVertexPosition, 1.0);
@@ -52,8 +52,8 @@
             uniform int shadeOn;
             uniform int shadowOn;
 
-            void main(void) 
-            {
+            void main(void) {
+            
                 // Shading
 
                 if(shadeOn == 1)
@@ -167,18 +167,15 @@
                 mat4.set(mvMatrix, copy);
                 mvMatrixStack.push(copy);
             }
-            function mvPopMatrix()
-            {
+            function mvPopMatrix(){
                 if(mvMatrixStack.length > 0){
                     mvMatrix = mvMatrixStack.pop();
                 }
             }
             //degtorad
-            function deg2Rad(angle)
-            {
+            function deg2Rad(angle){
                 return angle * Math.PI / 180
             }
-
             //Camera values
             var recalculate_camera = false;
             var dist = 0;
@@ -194,8 +191,7 @@
                 recalculate_camera = false;
             }
             //function key associated
-            function ResetCamera()
-            {
+            function ResetCamera(){
                 dist = 0;
                 mat4.identity(mouseRotationMatrix);
                 translate_camera = [0.0,0.0,0.0];
@@ -203,8 +199,7 @@
             }
             //shaders
             var shaderProgram;
-            function initShaders()
-            {
+            function initShaders() {
                 var fragmentShader = getShader("shader-fs");
                 var vertexShader = getShader("shader-vs");
                 shaderProgram = gl.createProgram();
@@ -219,11 +214,9 @@
                 gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
                 shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
                 gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
-
                 shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
                 shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
                 shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
-
                 shaderProgram.Ia_Uniform = gl.getUniformLocation(shaderProgram, "Ia");
                 shaderProgram.Id_Uniform = gl.getUniformLocation(shaderProgram, "Id");
                 shaderProgram.Is_Uniform = gl.getUniformLocation(shaderProgram, "Is");
@@ -231,21 +224,18 @@
                 shaderProgram.Kd_Uniform = gl.getUniformLocation(shaderProgram, "Kd");
                 shaderProgram.Ks_Uniform = gl.getUniformLocation(shaderProgram, "Ks");
                 shaderProgram.shininess_Uniform = gl.getUniformLocation(shaderProgram, "shininess");
-
                 //precalculating variables that will never change
                 mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
                 var defLight = new light();
                 defLight.Ia = [0.2, 0.2, 0.2];
                 defLight.Id = [0.5, 0.5, 0.5];
                 defLight.Is = [1.0, 1.0, 1.0];
-
                 gl.uniform3fv(shaderProgram.Ia_Uniform, defLight.Ia);
                 gl.uniform3fv(shaderProgram.Id_Uniform, defLight.Id);
                 gl.uniform3fv(shaderProgram.Is_Uniform, defLight.Is);
                 recalculate_camera = true;
             }
-            function sendMatricesToShader() 
-            {
+            function sendMatricesToShader() {
                 gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
                 gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
                 var normalMatrix = mat3.create();
@@ -254,31 +244,26 @@
                 gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
             }
             //light
-            function light()
-            {
+            function light(){
                 this.Ia = [0.0,0.0,0.0];
                 this.Id = [0.0,0.0,0.0];
                 this.Is = [0.0,0.0,0.0];
             }
             //material
-            function material()
-            {
+            function material(){
                 this.Ka = [1.0,0.3,0.0]; //material ambient
                 this.Kd = [1.0,0.3,0.0]; //material diffuse
                 this.Ks = [1.0,0.3,0.0]; //material shininess
                 this.shininess = 1.0;
             }
             //Transform
-            function transform()
-            {
+            function transform(){
                 this.position = [0,0,0];
                 this.rotateAngle = 0;
                 this.rotateVector = [0,0,0];
                 this.scale = [1,1,1];
                 this.modelMatrix;
-
-                this.CalcualteModelMatrix = function()
-                {
+                this.CalcualteModelMatrix = function(){
                     this.modelMatrix = mat4.create();
                     mat4.identity(this.modelMatrix);
                     mat4.translate(this.modelMatrix, this.position);
@@ -288,23 +273,17 @@
             }
             //models
             var modelsLoaded = [];
-
-            function model()
-             {
+            function model() {
                 this.VertexPositionBuffer;
                 this.VertexNormalBuffer;
                 this.VertexIndexBuffer;
                 this.material;
                 this.transform;
             }
-
             var loadCount = 0;
-
-            function handleLoadedModel(modelData)
-            {
+            function handleLoadedModel(modelData){
                 var toFill = new model();
                 toFill.VertexPositionBuffer = gl.createBuffer();
-
                 gl.bindBuffer(gl.ARRAY_BUFFER, toFill.VertexPositionBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelData.vertexPositions), gl.STATIC_DRAW);
                 toFill.VertexPositionBuffer.itemSize = 3;
@@ -322,8 +301,7 @@
                 modelsLoaded.push(toFill);
                 loadCount -= 1;
             }
-            function loadModel(location)
-            {
+            function loadModel(location){
                 var request = new XMLHttpRequest();
                 request.open("GET", location);
                 request.onreadystatechange = function(){
@@ -334,8 +312,7 @@
                 request.send();
                 loadCount += 1;
             }
-            function drawScene() 
-            {
+            function drawScene() {
                 gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 for(i in modelsLoaded)
@@ -364,8 +341,7 @@
             }
             //inputs
                 //key inputs
-            function handleKeyDown(event)
-            {
+            function handleKeyDown(event){
                 if (event.defaultPrevented) {
                     return; // Do nothing if the event was already processed
                 }
@@ -395,9 +371,7 @@
             var mouseDown = false;
             var wheelDown = false;
             var leftDown = false;
-
-            function handleMouseDown(event)
-            {
+            function handleMouseDown(event){
                 event.preventDefault();
                 mouseDown = true;
                 if(event.button == 1){
@@ -409,9 +383,7 @@
                 lastMouseX = event.clientX;
                 lastMouseY = event.clientY;
             }
-
-            function handleMouseUp(event)
-            {
+            function handleMouseUp(event){
                 mouseDown = false;
                 if(event.button == 1){
                     wheelDown = false;
@@ -420,9 +392,7 @@
                     leftDown = false;
                 }
             }
-            
-            function handleMouseMove(event)
-            {
+            function handleMouseMove(event){
                 event.preventDefault();
                 if(!mouseDown){
                     return;
@@ -431,16 +401,12 @@
                 var newY = event.clientY;
                 var deltaX = newX - lastMouseX;
                 var deltaY = newY - lastMouseY;
-
-                if(wheelDown)
-                {
+                if(wheelDown){
                     translate_camera[0] += deltaX * 0.005;
                     translate_camera[1] += deltaY * 0.005;
                     recalculate_camera = true;
                 }
-
-                if(leftDown)
-                {
+                if(leftDown){
                     var newRotationMatrix = mat4.create();
                     mat4.identity(newRotationMatrix);
                     mat4.rotate(newRotationMatrix, deg2Rad(deltaX / 10), [0,1,0]);
@@ -448,17 +414,12 @@
                     mat4.multiply(newRotationMatrix, mouseRotationMatrix, mouseRotationMatrix);
                     recalculate_camera = true;
                 }
-
                 lastMouseX = newX;
                 lastMouseY = newY;
             }
-
             var setvalues = true;
-
-            function renderingLoop()
-            {
+            function renderingLoop(){
                 requestAnimationFrame(renderingLoop);
-
                 if(loadCount == 0 && setvalues)
                 {
                     //link to materials: http://devernay.free.fr/cours/opengl/materials.html
@@ -474,8 +435,8 @@
                     modelsLoaded[0].transform.CalcualteModelMatrix();
                     //cyan plastic
                     modelsLoaded[1].material = new material();
-                    modelsLoaded[1].material.Ka = [0.0, 0.05, 1.0];
-                    modelsLoaded[1].material.Kd = [0.0, 0.5, 0.8];
+                    modelsLoaded[1].material.Ka = [0.0, 0.1, 0.65];
+                    modelsLoaded[1].material.Kd = [0.0, 0.50980392, 0.50980392];
                     modelsLoaded[1].material.Ks = [0.50196078, 0.50196078, 0.50196078];
                     modelsLoaded[1].material.shininess = 0.25;
                     modelsLoaded[1].transform = new transform();
@@ -486,31 +447,24 @@
                     modelsLoaded[1].transform.CalcualteModelMatrix();
                     setvalues = false;
                 }
-                if(recalculate_camera)
-                {
+                if(recalculate_camera){
                     calculateCamera();
                 }
                 drawScene();
             }
-
-            function webGLStart() 
-            {
+            function webGLStart() {
                 var canvas = document.getElementById("webGL-canvas");
-
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
-
                 document.onkeydown = handleKeyDown;
                 canvas.onmousedown = handleMouseDown;
                 document.onmouseup = handleMouseUp;
                 document.onmousemove = handleMouseMove;
                 document.onwheel = handleWheel;
-
                 initGL(canvas);
                 initShaders();
                 loadModel("models/Teapot.json");
                 loadModel("models/Laptop.json");
-                
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.enable(gl.DEPTH_TEST);
                 gl.enable(gl.CULL_FACE);
