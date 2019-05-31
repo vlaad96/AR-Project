@@ -9,13 +9,18 @@
         <script id="shader-vs" type="x-shader/x-vertex">
             attribute vec3 aVertexPosition;
             attribute vec3 aVertexNormal;
+
             uniform mat4 uMVMatrix;
             uniform mat4 uPMatrix;
             uniform mat3 uNMatrix;
+
             varying vec3 normalEye;
             varying vec4 positionEye;
-            void main(void) {
+
+            void main(void) 
+            {
                 normalEye = normalize(uNMatrix * aVertexNormal);
+
                 positionEye = uMVMatrix * vec4(aVertexPosition, 1.0);
                 gl_Position = uPMatrix * positionEye;
             }
@@ -23,19 +28,26 @@
 
         <script id="shader-fs" type="x-shader/x-fragment">
             precision mediump float;
-            uniform vec3 Ia, Id, Is; //light color
-            uniform vec3 Ka, Kd, Ks; //material color
-            uniform float shininess; //material color
+
+            uniform vec3 Ia, Id, Is; // COLOR OF THE LIGHT
+            uniform vec3 Ka, Kd, Ks; // MATERIAL AMBIENT, DIFFUSE AND SPECULALTION
+            uniform float shininess; // MATERIAL SHINE
+
             varying vec3 normalEye;
             varying vec4 positionEye;
+
             const vec3 lightPositionEye = vec3(1.0, 0.5, 0.0);
-            void main(void) {
+
+            void main(void) 
+            {
                 vec3 L = normalize(lightPositionEye - positionEye.xyz);
                 vec3 N = normalize(normalEye);
-                vec3 V = normalize(-positionEye.xyz);
                 float NdotL = max(dot(N, L), 0.0);
+
+                vec3 V = normalize(-positionEye.xyz);
                 vec3 R = reflect(-L, N);
                 float RdotV = pow(max(dot(R, V), 0.0),  shininess);
+
                 vec3 shadedColor = Ka * Ia +  Kd * Id * NdotL + Ks * Is * RdotV;
                 gl_FragColor = vec4(shadedColor,1.0);
             }
@@ -140,56 +152,69 @@
                 gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
                 shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
                 gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
                 shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
                 shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
                 shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+
                 shaderProgram.Ia_Uniform = gl.getUniformLocation(shaderProgram, "Ia");
                 shaderProgram.Id_Uniform = gl.getUniformLocation(shaderProgram, "Id");
                 shaderProgram.Is_Uniform = gl.getUniformLocation(shaderProgram, "Is");
+
                 shaderProgram.Ka_Uniform = gl.getUniformLocation(shaderProgram, "Ka");
                 shaderProgram.Kd_Uniform = gl.getUniformLocation(shaderProgram, "Kd");
                 shaderProgram.Ks_Uniform = gl.getUniformLocation(shaderProgram, "Ks");
                 shaderProgram.shininess_Uniform = gl.getUniformLocation(shaderProgram, "shininess");
-                //precalculating variables that will never change
+
+                // VARIABLES THAT NOT GONNA CHANGE
                 mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+
                 var defLight = new light();
                 defLight.Ia = [0.2, 0.2, 0.2];
                 defLight.Id = [0.5, 0.5, 0.5];
                 defLight.Is = [1.0, 1.0, 1.0];
+
                 gl.uniform3fv(shaderProgram.Ia_Uniform, defLight.Ia);
                 gl.uniform3fv(shaderProgram.Id_Uniform, defLight.Id);
                 gl.uniform3fv(shaderProgram.Is_Uniform, defLight.Is);
                 recalculate_camera = true;
             }
-            function sendMatricesToShader() {
+
+            function sendMatricesToShader() 
+            {
                 gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
                 gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+
                 var normalMatrix = mat3.create();
+
                 mat4.toInverseMat3(mvMatrix, normalMatrix);
                 mat3.transpose(normalMatrix);
                 gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
             }
-            //light
+            // LIGHTING
             function light(){
                 this.Ia = [0.0,0.0,0.0];
                 this.Id = [0.0,0.0,0.0];
                 this.Is = [0.0,0.0,0.0];
             }
-            //material
+            // MATERIAL
             function material(){
-                this.Ka = [1.0,0.3,0.0]; //material ambient
-                this.Kd = [1.0,0.3,0.0]; //material diffuse
-                this.Ks = [1.0,0.3,0.0]; //material shininess
+                this.Ka = [1.0,0.3,0.0]; // AMBIENT
+                this.Kd = [1.0,0.3,0.0]; // DIFFUSE
+                this.Ks = [1.0,0.3,0.0]; // SPECULATION
                 this.shininess = 1.0;
             }
-            //Transform
+            // TRANFORM
             function transform(){
+
                 this.position = [0,0,0];
                 this.rotateAngle = 0;
                 this.rotateVector = [0,0,0];
                 this.scale = [1,1,1];
                 this.modelMatrix;
+
                 this.CalcualteModelMatrix = function(){
+
                     this.modelMatrix = mat4.create();
                     mat4.identity(this.modelMatrix);
                     mat4.translate(this.modelMatrix, this.position);
@@ -197,37 +222,47 @@
                     mat4.scale(this.modelMatrix, this.scale);
                 }
             }
-            //models
+            // MODELS
             var modelsLoaded = [];
-            function model() {
+            function model() 
+            {
                 this.VertexPositionBuffer;
                 this.VertexNormalBuffer;
                 this.VertexIndexBuffer;
                 this.material;
                 this.transform;
             }
+
             var loadCount = 0;
-            function handleLoadedModel(modelData){
+
+            function handleLoadedModel(modelData)
+            {
                 var toFill = new model();
                 toFill.VertexPositionBuffer = gl.createBuffer();
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, toFill.VertexPositionBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelData.vertexPositions), gl.STATIC_DRAW);
                 toFill.VertexPositionBuffer.itemSize = 3;
                 toFill.VertexPositionBuffer.numItems = modelData.vertexPositions.length / 3;
                 toFill.VertexNormalBuffer = gl.createBuffer();
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, toFill.VertexNormalBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelData.vertexNormals), gl.STATIC_DRAW);
                 toFill.VertexNormalBuffer.itemSize = 3;
                 toFill.VertexNormalBuffer.numItems = modelData.vertexNormals.length / 3;
                 toFill.VertexIndexBuffer = gl.createBuffer();
+
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, toFill.VertexIndexBuffer);
                 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(modelData.indices), gl.STATIC_DRAW);
                 toFill.VertexIndexBuffer.itemSize = 1;
                 toFill.VertexIndexBuffer.numItems = modelData.indices.length;
+
                 modelsLoaded.push(toFill);
                 loadCount -= 1;
             }
-            function loadModel(location){
+            
+            function loadModel(location)
+            {
                 var request = new XMLHttpRequest();
                 request.open("GET", location);
                 request.onreadystatechange = function(){
@@ -238,9 +273,12 @@
                 request.send();
                 loadCount += 1;
             }
-            function drawScene() {
+
+            function drawScene() 
+            {
                 gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
                 for(i in modelsLoaded)
                 {
                     if(modelsLoaded[i].VertexPositionBuffer)
@@ -257,6 +295,7 @@
                         gl.uniform3fv(shaderProgram.Kd_Uniform, modelsLoaded[i].material.Kd);
                         gl.uniform3fv(shaderProgram.Ks_Uniform, modelsLoaded[i].material.Ks);
                         gl.uniform1f(shaderProgram.shininess_Uniform, modelsLoaded[i].material.shininess);
+
                         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelsLoaded[i].VertexIndexBuffer);
                         sendMatricesToShader();
                         gl.drawElements(gl.TRIANGLES, modelsLoaded[i].VertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -265,23 +304,24 @@
                     }
                 }
             }
-            //inputs
-                //key inputs
+
+            // RESET "r"
             function handleKeyDown(event){
                 if (event.defaultPrevented) {
-                    return; // Do nothing if the event was already processed
+                    return; // DO NOTHING IF EVENT WAS ALREADY PROCESSED
                 }
                 switch (event.key) {
-                    case "r"://be careful with the CAPS when pressing r
+                    case "r":// AFFECTED BY CAPS
                         ResetCamera();
                         break;
                     default:
-                        return; // Quit when this doesn't handle the key event.
+                        return; // QUIT
                 }
-                // Cancel the default action to avoid it being handled twice
+                // CANCEL DEFAULT ACTION TO AVOID REPEATING IT
                 event.preventDefault();
             }
-                //mouse wheel
+
+            // MOUSE WHEEL
             function handleWheel(event){
                 event.preventDefault();
                 if(event.deltaY < 0)
@@ -291,12 +331,14 @@
                 translate_camera[2] = dist;
                 recalculate_camera = true;
             }
-                //mouse
+            
+            // MOUSE
             var lastMouseX = null;
             var lastMouseY = null;
             var mouseDown = false;
             var wheelDown = false;
             var leftDown = false;
+
             function handleMouseDown(event){
                 event.preventDefault();
                 mouseDown = true;
@@ -349,7 +391,8 @@
                 if(loadCount == 0 && setvalues)
                 {
                     //link to materials: http://devernay.free.fr/cours/opengl/materials.html
-                    //chopper
+
+                    //COPPER
                     modelsLoaded[0].material = new material();
                     modelsLoaded[0].material.Ka = [0.60, 0.3, 0.0225];
                     modelsLoaded[0].material.Kd = [0.7038, 0.27048, 0.0828];
@@ -359,10 +402,11 @@
                     modelsLoaded[0].transform.position = [-5.0,0.0,-10.0];
                     modelsLoaded[0].transform.scale = [0.25, 0.25,0.25];
                     modelsLoaded[0].transform.CalcualteModelMatrix();
-                    //cyan plastic
+
+                    //BLUE
                     modelsLoaded[1].material = new material();
-                    modelsLoaded[1].material.Ka = [0.0, 0.1, 0.65];
-                    modelsLoaded[1].material.Kd = [0.0, 0.50980392, 0.50980392];
+                    modelsLoaded[1].material.Ka = [0.0, 0.05, 1.0];
+                    modelsLoaded[1].material.Kd = [0.0, 0.5, 0.8];
                     modelsLoaded[1].material.Ks = [0.50196078, 0.50196078, 0.50196078];
                     modelsLoaded[1].material.shininess = 0.25;
                     modelsLoaded[1].transform = new transform();
@@ -378,23 +422,30 @@
                 }
                 drawScene();
             }
-            function webGLStart() {
+            function webGLStart() 
+            {
                 var canvas = document.getElementById("webGL-canvas");
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
+
                 document.onkeydown = handleKeyDown;
                 canvas.onmousedown = handleMouseDown;
                 document.onmouseup = handleMouseUp;
                 document.onmousemove = handleMouseMove;
                 document.onwheel = handleWheel;
+
                 initGL(canvas);
                 initShaders();
+
                 loadModel("models/Teapot.json");
                 loadModel("models/Laptop.json");
+
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
                 gl.enable(gl.DEPTH_TEST);
                 gl.enable(gl.CULL_FACE);
                 gl.cullFace(gl.BACK);
+                
                 renderingLoop();
             }
         </script>
