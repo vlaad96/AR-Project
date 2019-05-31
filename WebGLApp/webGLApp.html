@@ -96,10 +96,10 @@
             
                 return shader;
             }
-            //Matrices
-            var mvMatrixStack = []; //store view of camera
-            var mvMatrix = mat4.create(); //model view
-            var pMatrix = mat4.create(); //projection
+            // MATRICES
+            var mvMatrixStack = []; // STORE CAMERA VIEW
+            var mvMatrix = mat4.create(); // MODEL VIEW
+            var pMatrix = mat4.create(); // PROJECTION
             function mvPushMatrix(){
                 var copy = mat4.create();
                 mat4.set(mvMatrix, copy);
@@ -110,11 +110,11 @@
                     mvMatrix = mvMatrixStack.pop();
                 }
             }
-            //degtorad
+            // DEG TO RAD
             function deg2Rad(angle){
                 return angle * Math.PI / 180
             }
-            //Camera values
+            // CAMERA VALUES
             var recalculate_camera = false;
             var dist = 0;
             var translate_camera = [ 0, 0, 0];
@@ -128,16 +128,17 @@
                 mvPushMatrix();
                 recalculate_camera = false;
             }
-            //function key associated
+            //FUNCTION KEYS
             function ResetCamera(){
                 dist = 0;
                 mat4.identity(mouseRotationMatrix);
                 translate_camera = [0.0,0.0,0.0];
                 recalculate_camera = true;
             }
-            //shaders
+            // SHADERS
             var shaderProgram;
-            function initShaders() {
+            function initShaders() 
+            {
                 var fragmentShader = getShader("shader-fs");
                 var vertexShader = getShader("shader-vs");
                 shaderProgram = gl.createProgram();
@@ -445,7 +446,7 @@
                 gl.enable(gl.DEPTH_TEST);
                 gl.enable(gl.CULL_FACE);
                 gl.cullFace(gl.BACK);
-                
+
                 renderingLoop();
             }
         </script>
